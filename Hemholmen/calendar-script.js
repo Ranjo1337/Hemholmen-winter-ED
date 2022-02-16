@@ -1,3 +1,254 @@
+const calendarSection = document.querySelector(".calendar-section");
+const guestSection = document.querySelector(".guest-section");
+const timeSection = document.querySelector(".time-section");
+const reqSection = document.querySelector(".req-section");
+const contactSection = document.querySelector(".contact-section");
+const infoBox = document.querySelector(".info-box");
+const calendarIcon = document.querySelector(".grid-icon-calendar");
+const guestIcon = document.querySelector(".grid-icon-guests");
+const timeIcon = document.querySelector(".grid-icon-time");
+const reqIcon = document.querySelector(".grid-icon-req");
+const contactIcon = document.querySelector(".grid-icon-contact");
+const visited = "grid-icon-visited";
+const active = "grid-icon-active";
+const hidden = "hidden";
+let dateInfo = "";
+let guestsInfo = "";
+let timeInfo = "";
+let reqInfo = "";
+let clientPhone = "";
+let clientEmail = "";
+let clientName = "";
+let bookedDay = "";
+let bookedDate;
+const patterns = {
+  name: /^[-'a-zA-ZÀ-ÖØ-öø-ſ,.'-]+$/,
+  phone: /^(([+]46)\s*(7)|07)[02369]\s*(\d{4})\s*(\d{3})$/,
+  email: /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
+};
+const checkboxTerms = document.querySelector("#terms-checkbox");
+const checkboxPhone = document.querySelector("#phone-checkbox");
+const checkboxEmail = document.querySelector("#email-checkbox");
+activateCalendarIcon();
+
+function renderGuestSection(date) {
+  dateInfo = setTheDate(date);
+  bookedDate = new Date(d.getFullYear(), d.getMonth(), date);
+  showSection(infoBox);
+  document.querySelector(".date-info").innerHTML = dateInfo;
+  hideSection(calendarSection);
+  showSection(guestSection);
+  deActivateGridIcon(calendarIcon);
+  activateGridIcon(guestIcon);
+  addVisitedClass(guestIcon);
+  document.querySelectorAll(".guest-amount").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      guestsInfo = item.querySelector(".guest-value").innerHTML;
+      document.querySelector(
+        ".guests-info"
+      ).innerHTML = `Antal Gäster: ${guestsInfo}`;
+      renderTimeSection();
+    });
+  });
+}
+
+function renderTimeSection() {
+  hideSection(guestSection);
+  showSection(timeSection);
+  deActivateGridIcon(guestIcon);
+  activateGridIcon(timeIcon);
+  addVisitedClass(timeIcon);
+  document.querySelectorAll(".time-element").forEach((item) => {
+    item.addEventListener("click", (event) => {
+      if (!item.classList.contains("time-booked")) {
+        timeInfo = item.querySelector(".time-value").innerHTML;
+        document.querySelector(".time-info").innerHTML = `Tid: ${timeInfo}`;
+        renderRequirements();
+      } else {
+        console.log("tiden är redan bokad");
+      }
+    });
+  });
+}
+
+function renderRequirements() {
+  hideSection(timeSection);
+  showSection(reqSection);
+  deActivateGridIcon(timeIcon);
+  activateGridIcon(reqIcon);
+  addVisitedClass(reqIcon);
+}
+
+function renderContactSection() {
+  reqInfo = document.querySelector("#req-input").value;
+  if (reqInfo != "") {
+    document.querySelector(
+      ".req-info"
+    ).innerHTML = `Övriga önskemål: ${reqInfo}`;
+  }
+  hideSection(reqSection);
+  showSection(contactSection);
+  deActivateGridIcon(reqIcon);
+  activateGridIcon(contactIcon);
+  addVisitedClass(contactIcon);
+  document.querySelectorAll(".form").forEach((item) => {
+    item.addEventListener("keyup", (event) => {
+      checkForms(event.target, patterns[event.target.attributes.name.value]);
+    });
+  });
+}
+function checkForms(field, regex) {
+  let verifiedCircle = `.${field.attributes.name.value}-circle`;
+  let formPara = `.${field.attributes.name.value}-para`;
+  if (regex.test(field.value)) {
+    field.classList.add("verified");
+    field.classList.remove("not-verified");
+    document.querySelector(verifiedCircle).classList.remove("hidden");
+    document.querySelector(formPara).classList.add("hidden");
+  } else {
+    field.classList.remove("verified");
+    field.classList.add("not-verified");
+    document.querySelector(verifiedCircle).classList.add("hidden");
+    document.querySelector(formPara).classList.remove("hidden");
+  }
+  if (
+    document.querySelector("#name").classList.contains("verified") &&
+    document.querySelector("#email").classList.contains("verified") &&
+    document.querySelector("#phone").classList.contains("verified")
+  ) {
+    document.querySelector(".contact-btn").classList.remove("grey-btn");
+    document.querySelector(".contact-btn").classList.add("send-btn");
+  } else {
+    document.querySelector(".contact-btn").classList.add("grey-btn");
+    document.querySelector(".contact-btn").classList.remove("send-btn");
+  }
+}
+
+function contactBtnClicked() {
+  clientName = document.querySelector("#name").value;
+  clientEmail = document.querySelector("#email").value;
+  clientPhone = document.querySelector("#phone").value;
+  if (clientName != "" && clientEmail != "" && clientPhone != "") {
+    renderBookingConfirmation();
+  } else {
+    alert(
+      "Vänligen fyll i ditt namn, emailadress och telefonnummer samt kryssa i checkbox rutorna"
+    );
+  }
+}
+function renderBookingConfirmation() {
+  document.querySelector(
+    ".date-confirmed"
+  ).innerHTML = `<i class="far fa-calendar-alt"></i>  ${getDayName(
+    bookedDate.getDay()
+  )} ${dateInfo}`;
+  document.querySelector(
+    ".guests-confirmed"
+  ).innerHTML += `<i class="fas fa-user-friends"></i>  ${guestsInfo}`;
+  document.querySelector(
+    ".time-confirmed"
+  ).innerHTML += ` <i class="far fa-clock"></i> ${timeInfo}`;
+  if (reqInfo != "") {
+    document.querySelector(
+      ".req-confirmed"
+    ).innerHTML += ` <i class="fas fa-comment"></i> ${reqInfo}`;
+  }
+  if (checkboxEmail.checked && checkboxPhone.checked) {
+    document.querySelector(
+      ".client-info-confirmed"
+    ).innerHTML = ` <i class="fas fa-paper-plane"></i> <span class="text-small"> Bokningsbekräftelse skickad till ${clientEmail} & ${clientPhone}</span>`;
+  } else if (checkboxPhone.checked) {
+    document.querySelector(
+      ".client-info-confirmed"
+    ).innerHTML = `<i class="fas fa-paper-plane"></i> Bokningsbekräftelse skickad till: ${clientPhone}`;
+  } else if (checkboxEmail.checked) {
+    document.querySelector(
+      ".client-info-confirmed"
+    ).innerHTML = `<i class="fas fa-paper-plane"></i> Bokningsbekräftelse skickad till: ${clientEmail}`;
+  }
+  hideSection(document.querySelector(".booking-section"));
+  showSection(document.querySelector(".booking-confirmation-section"));
+}
+function hideAll() {
+  calendarSection.classList.add(hidden);
+  guestSection.classList.add(hidden);
+  timeSection.classList.add(hidden);
+  reqSection.classList.add(hidden);
+  contactSection.classList.add(hidden);
+}
+function showSection(section) {
+  section.classList.remove(hidden);
+}
+function activateCalendarIcon() {
+  activateGridIcon(calendarIcon);
+  addVisitedClass(calendarIcon);
+}
+function addVisitedClass(icon) {
+  icon.classList.add(visited);
+}
+function hideSection(section) {
+  section.classList.add(hidden);
+}
+function showSection(section) {
+  section.classList.remove(hidden);
+}
+function deActivateGridIcon(icon) {
+  icon.classList.remove(active);
+}
+function hideAllGridIcons() {
+  calendarIcon.classList.remove(active);
+  guestIcon.classList.remove("grid-icon-active");
+  timeIcon.classList.remove(active);
+  reqIcon.classList.remove(active);
+  contactIcon.classList.remove(active);
+}
+function activateGridIcon(gridIcon) {
+  gridIcon.classList.add(active);
+}
+function isVisited(icon) {
+  return icon.classList.contains(visited);
+}
+
+function calendarClicked() {
+  hideAll();
+  hideAllGridIcons();
+  showSection(calendarSection);
+  activateGridIcon(calendarIcon);
+}
+function guestClicked() {
+  if (isVisited(guestIcon)) {
+    hideAll();
+    hideAllGridIcons();
+    showSection(guestSection);
+    activateGridIcon(guestIcon);
+  }
+}
+function timeClicked() {
+  if (isVisited(timeIcon)) {
+    hideAll();
+    hideAllGridIcons();
+    showSection(timeSection);
+    activateGridIcon(timeIcon);
+  }
+}
+function reqClicked() {
+  if (isVisited(reqIcon)) {
+    hideAll();
+    hideAllGridIcons();
+    showSection(reqSection);
+    activateGridIcon(reqIcon);
+  }
+}
+function contactClicked() {
+  if (isVisited(contactIcon)) {
+    hideAll();
+    hideAllGridIcons();
+    showSection(contactSection);
+    activateGridIcon(contactIcon);
+  }
+}
+// Calendar
+
 let today = new Date();
 let d = new Date();
 d.setDate(1);
@@ -5,7 +256,6 @@ let year = d.getFullYear();
 let month = d.getMonth();
 let day = d.getDate();
 printDays();
-
 function getTheMonth() {
   return month;
 }
@@ -28,9 +278,9 @@ function decrementMonth() {
   printDays();
 }
 function setFooterHeader() {
-  document.querySelector(
-    ".footer-heading"
-  ).innerHTML = `Idag: ${today.getDate()} 
+  document.querySelector(".footer-heading").innerHTML = `Idag: ${getDayName(
+    today.getDay()
+  )} ${today.getDate()} 
    ${getMonthName(today.getMonth())} ${today.getFullYear()}`;
 }
 function setCalendarHeader() {
@@ -49,30 +299,31 @@ function printDays() {
       getTheMonth() === today.getMonth() &&
       getYear() === today.getFullYear()
     ) {
-      string += `<div class="day today">${i}</div>`;
+      string += `<div class="day today" onClick="renderGuestSection(${i})">${i}</div>`;
+    } else if (
+      i < today.getDate() &&
+      getTheMonth() <= today.getMonth() &&
+      getYear() <= today.getFullYear()
+    ) {
+      string += `<div class="day prev-days">${i}</div>`;
     } else {
-      string += `<div class="day" onClick="reDirect(${i})">${i}</div>`;
+      string += `<div class="day" onClick="renderGuestSection(${i})">${i}</div>`;
     }
   }
   string += printNext();
   document.querySelector(".calendar").innerHTML = string;
 }
-function reDirect(date) {
-  let temp = setTheDate(date);
-  document.querySelector(".date").innerHTML = temp;
-  const paramsString = `year=${d.getFullYear()}`;
-  let searchParams = new URLSearchParams(paramsString);
-  searchParams.append("date", date);
-  searchParams.append("month", d.getMonth() + 1);
-  window.location = `reservationHowMany.html?${searchParams}`;
-}
 function setTheDate(date) {
   let temp = "";
+  if (date < 10) {
+    date = `0${date}`;
+  }
   if (d.getMonth() + 1 > 9) {
     temp = `${d.getFullYear()}-${d.getMonth() + 1}-${date}`;
   } else {
     temp = `${d.getFullYear()}-0${d.getMonth() + 1}-${date}`;
   }
+  bookedDay = getDayName(date);
   return temp;
 }
 function printPrev() {
@@ -108,6 +359,32 @@ function getYear() {
 function getDaysInMonth(month) {
   let days = new Date(getYear(), month + 1, 0).getDate();
   return days;
+}
+function getDayName(day) {
+  switch (day) {
+    case 0:
+      day = "Söndag";
+      break;
+    case 1:
+      day = "Måndag";
+      break;
+    case 2:
+      day = "Tisdag";
+      break;
+    case 3:
+      day = "Onsdag";
+      break;
+    case 4:
+      day = "Torsdag";
+      break;
+    case 5:
+      day = "Fredag";
+      break;
+    case 6:
+      day = "Lördag";
+      break;
+  }
+  return day;
 }
 function getMonthName(month) {
   switch (month) {
